@@ -1,21 +1,26 @@
 package cli;
 
+import model.SystemConfiguration;
 import model.Ticket;
 import service.Customer;
 import service.TicketPoolService;
 import service.Vendor;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.io.FileWriter;
 
 public class TicketingCLI {
 
-    // Shared resources
     private static int totalTickets;
     private static int ticketReleaseRate;
     private static int customerRetrievalRate;
+    private static int maxTicketCapacity;
 
     private static TicketPoolService ticketPoolService;
+    private static SystemConfiguration systemConfiguration = new SystemConfiguration();
+
     private static Thread[] vendorThreads;
     private static Thread[] customerThreads;
 
@@ -31,23 +36,47 @@ public class TicketingCLI {
 
         // Input total tickets
         totalTickets = promptPositiveInteger(scanner, "Enter total tickets available in the system: ");
+        systemConfiguration.setTotalTickets(totalTickets);
 
         // Input max ticket capacity
-         int maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
+        maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
         while (maxTicketCapacity > totalTickets) {
             System.out.println("Max ticket capacity cannot exceed total tickets.");
             maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
         }
+        systemConfiguration.setMaxTicketCapacity(maxTicketCapacity);
 
         // Input ticket release rate
         ticketReleaseRate = promptPositiveInteger(scanner, "Enter ticket release rate (in seconds): ") * 1000;
+        systemConfiguration.setTicketReleaseRate(ticketReleaseRate / 1000); // Save in seconds
 
         // Input customer retrieval rate
         customerRetrievalRate = promptPositiveInteger(scanner, "Enter customer retrieval rate (in seconds): ") * 1000;
+        systemConfiguration.setCustomerRetrievalRate(customerRetrievalRate / 1000); // Save in seconds
 
         ticketPoolService = new TicketPoolService(maxTicketCapacity, totalTickets);
 
+        writeConfigurationToJson();
         System.out.println("System configuration completed successfully.");
+    }
+
+    private static void writeConfigurationToJson() {
+        // File path
+        String filePath ="C:/Users/janin/OneDrive/Desktop/system_configuration.json";
+
+        String json = "{\n" +
+                "  \"totalTickets\": " + totalTickets + ",\n" +
+                "  \"maxTicketCapacity\": " + maxTicketCapacity + ",\n" +
+                "  \"ticketReleaseRate\": " + ticketReleaseRate + ",\n" +
+                "  \"customerRetrievalRate\": " + customerRetrievalRate + "\n" +
+                "}";
+
+        try (FileWriter file = new FileWriter(filePath)) {
+            file.write(json);
+            System.out.println("Configuration saved to system_configuration.json");
+        } catch (IOException e) {
+            System.out.println("An error occurred while writing to the file: " + e.getMessage());
+        }
     }
 
     private static int promptPositiveInteger(Scanner scanner, String message) {
