@@ -20,6 +20,7 @@ public class Vendor implements Runnable {
         try {
             while (ticketPoolService.isRunning() && ticketPoolService.canProduceMoreTickets()) {
                 synchronized (ticketPoolService.getTicketPool()) { // Synchronize access to the ticket pool
+                    if (Thread.interrupted()) return;
                     // Wait if the ticket pool is at max capacity
                     while (ticketPoolService.getTicketPool().size() >= maxTicketCapacity) {
                         System.out.println("Vendor " + vendorId + " is waiting, ticket pool is full...");
