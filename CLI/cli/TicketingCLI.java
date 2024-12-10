@@ -1,6 +1,6 @@
 package cli;
 
-import model.SystemConfiguration;
+//import model.SystemConfiguration;
 import model.Ticket;
 import service.Customer;
 import service.TicketPoolService;
@@ -17,9 +17,10 @@ public class TicketingCLI {
     private static int ticketReleaseRate;
     private static int customerRetrievalRate;
     private static int maxTicketCapacity;
+//    private static boolean processCompleted = false;
 
     private static TicketPoolService ticketPoolService;
-    private static SystemConfiguration systemConfiguration = new SystemConfiguration();
+//    private static SystemConfiguration systemConfiguration = new SystemConfiguration();
 
     private static Thread[] vendorThreads;
     private static Thread[] customerThreads;
@@ -36,7 +37,7 @@ public class TicketingCLI {
 
         // Input total tickets
         totalTickets = promptPositiveInteger(scanner, "Enter total tickets available in the system: ");
-        systemConfiguration.setTotalTickets(totalTickets);
+//        systemConfiguration.setTotalTickets(totalTickets);
 
         // Input max ticket capacity
         maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
@@ -44,15 +45,15 @@ public class TicketingCLI {
             System.out.println("Max ticket capacity cannot exceed total tickets.");
             maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
         }
-        systemConfiguration.setMaxTicketCapacity(maxTicketCapacity);
+//        systemConfiguration.setMaxTicketCapacity(maxTicketCapacity);
 
         // Input ticket release rate
         ticketReleaseRate = promptPositiveInteger(scanner, "Enter ticket release rate (in seconds): ") * 1000;
-        systemConfiguration.setTicketReleaseRate(ticketReleaseRate / 1000); // Save in seconds
+//        systemConfiguration.setTicketReleaseRate(ticketReleaseRate / 1000); // Save in seconds
 
         // Input customer retrieval rate
         customerRetrievalRate = promptPositiveInteger(scanner, "Enter customer retrieval rate (in seconds): ") * 1000;
-        systemConfiguration.setCustomerRetrievalRate(customerRetrievalRate / 1000); // Save in seconds
+//        systemConfiguration.setCustomerRetrievalRate(customerRetrievalRate / 1000); // Save in seconds
 
         ticketPoolService = new TicketPoolService(maxTicketCapacity, totalTickets);
 
@@ -168,20 +169,30 @@ public class TicketingCLI {
 
         System.out.println("Stopping ticket processing...");
         ticketPoolService.setRunning(false); // Set the running flag to false
-
         try {
             for (Thread thread : vendorThreads) {
-                thread.interrupt();
-                thread.join();
+                if (thread != null && thread.isAlive()) {
+                    thread.interrupt();
+                    thread.join();
+                }
             }
             for (Thread thread : customerThreads) {
-                thread.interrupt();
-                thread.join();
+                if (thread != null && thread.isAlive()) {
+                    thread.interrupt();
+                    thread.join();
+                }
             }
             System.out.println("Ticket processing stopped");
         } catch (InterruptedException e) {
             System.out.println("Error while stopping threads: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupted status
+        }
+    }
+
+    public synchronized static void requestStopProcessing() {
+        if (!ticketPoolService.isProcessCompleted()) {
+            ticketPoolService.markProcessCompleted();
+            stopProcessing();
         }
     }
 }

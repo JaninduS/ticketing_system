@@ -14,6 +14,7 @@ public class TicketPoolService {
     private int ticketsProcessed = 0;
     private final int totalTickets;
     private final int maxTicketCapacity;
+    private boolean processCompleted = false;
 
     public TicketPoolService(int maxTicketCapacity, int totalTickets) {
         // Enforce the maximum capacity for the ticket pool
@@ -21,6 +22,14 @@ public class TicketPoolService {
         this.soldTickets = new ArrayList<>(totalTickets);
         this.maxTicketCapacity = maxTicketCapacity;
         this.totalTickets = totalTickets;
+    }
+
+    public synchronized boolean isProcessCompleted() {
+        return processCompleted;
+    }
+
+    public synchronized void markProcessCompleted() {
+        this.processCompleted = true;
     }
 
     // Synchronized getter and incrementer for ticketsProduced

@@ -1,5 +1,6 @@
 package service;
 
+import cli.TicketingCLI;
 import model.Ticket;
 
 import java.util.List;
@@ -12,6 +13,7 @@ public class Customer implements Runnable {
     private final int customerRetrievalRate;
     private final TicketPoolService ticketPoolService;
 
+
     public Customer(int customerId, TicketPoolService ticketPoolService, int customerRetrievalRate) {
         this.customerId = customerId;
         this.ticketPoolService = ticketPoolService;
@@ -22,6 +24,7 @@ public class Customer implements Runnable {
         try {
             while (ticketPoolService.isRunning() && ticketPoolService.canProcessMoreTickets()) {
                 synchronized (ticketPoolService.getTicketPool()) {
+                    if (Thread.interrupted()) return;
                     // Wait if the ticket pool is empty
                     while (ticketPoolService.getTicketPool().isEmpty()) {
                         System.out.println("Customer " + customerId + " is waiting, ticket pool is empty...");
@@ -35,6 +38,9 @@ public class Customer implements Runnable {
 
                 // Sleep for the retrieval rate
                 Thread.sleep(customerRetrievalRate);
+            }
+            if (!ticketPoolService.canProcessMoreTickets()) {
+                TicketingCLI.requestStopProcessing(); // Call the stop method
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
