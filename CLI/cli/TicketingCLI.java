@@ -17,10 +17,8 @@ public class TicketingCLI {
     private static int ticketReleaseRate;
     private static int customerRetrievalRate;
     private static int maxTicketCapacity;
-//    private static boolean processCompleted = false;
 
     private static TicketPoolService ticketPoolService;
-//    private static SystemConfiguration systemConfiguration = new SystemConfiguration();
 
     private static Thread[] vendorThreads;
     private static Thread[] customerThreads;
@@ -37,7 +35,6 @@ public class TicketingCLI {
 
         // Input total tickets
         totalTickets = promptPositiveInteger(scanner, "Enter total tickets available in the system: ");
-//        systemConfiguration.setTotalTickets(totalTickets);
 
         // Input max ticket capacity
         maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
@@ -45,15 +42,12 @@ public class TicketingCLI {
             System.out.println("Max ticket capacity cannot exceed total tickets.");
             maxTicketCapacity = promptPositiveInteger(scanner, "Enter max ticket capacity: ");
         }
-//        systemConfiguration.setMaxTicketCapacity(maxTicketCapacity);
 
         // Input ticket release rate
         ticketReleaseRate = promptPositiveInteger(scanner, "Enter ticket release rate (in seconds): ") * 1000;
-//        systemConfiguration.setTicketReleaseRate(ticketReleaseRate / 1000); // Save in seconds
 
         // Input customer retrieval rate
         customerRetrievalRate = promptPositiveInteger(scanner, "Enter customer retrieval rate (in seconds): ") * 1000;
-//        systemConfiguration.setCustomerRetrievalRate(customerRetrievalRate / 1000); // Save in seconds
 
         ticketPoolService = new TicketPoolService(maxTicketCapacity, totalTickets);
 
@@ -120,10 +114,10 @@ public class TicketingCLI {
                     if (soldTickets.isEmpty()) {
                         System.out.println("No tickets were sold.");
                     } else {
-                        soldTickets.forEach(System.out::println);
+                        soldTickets.forEach(System.out::println); // Print each sold ticket information to the console
                     }
                     System.out.println("Exiting application...");
-                    System.exit(0);
+                    System.exit(0); // Exit application
                     break;
 
                 default:
@@ -133,6 +127,7 @@ public class TicketingCLI {
     }
 
     private static void startProcessing() {
+        // Check if system is running first
         if (ticketPoolService.isRunning()) {
             System.out.println("System is already running.");
             return;
@@ -147,7 +142,7 @@ public class TicketingCLI {
 
         for (int i = 0; i < numVendors; i++) {
             vendorThreads[i] = new Thread(new Vendor(i + 1, ticketPoolService, ticketReleaseRate));
-            vendorThreads[i].start();
+            vendorThreads[i].start(); // Start each vendor thread
         }
 
         // Initialize customer threads
