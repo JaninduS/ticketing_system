@@ -179,7 +179,6 @@ public class TicketingCLI {
             }
             System.out.println("Ticket processing stopped");
         } catch (InterruptedException e) {
-            System.out.println("Error while stopping threads: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupted status
         }
     }

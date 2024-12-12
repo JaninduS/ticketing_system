@@ -9,7 +9,7 @@ import java.util.Collections;
 public class TicketPoolService {
     private final List<Ticket> ticketPool;
     private final List<Ticket> soldTickets;
-    private static boolean running =  false;
+    private static volatile boolean running =  false;
     private int ticketsProduced = 0;
     private int ticketsProcessed = 0;
     private final int totalTickets;
@@ -51,7 +51,7 @@ public class TicketPoolService {
         return ticketsProcessed < totalTickets;
     }
 
-    public List<Ticket> getTicketPool() {
+    public synchronized List<Ticket> getTicketPool() {
         return ticketPool;
     }
 
@@ -94,27 +94,17 @@ public class TicketPoolService {
 
     public synchronized void addTicket(Ticket ticket, int vendorId) {
         try {
-            while (ticketPool.size() >= maxTicketCapacity) {
-                wait();
-            }
-            // Attempt to add the ticket only if the pool is not full
             ticket.setVendorId(vendorId);
             ticketPool.add(ticket);
             incrementTicketsProduced();
             System.out.println("Vendor " + vendorId + " added ticket: " + ticket + "Current pool size: " + getSize());
         } catch (Exception e) {
-            System.out.println("Error adding ticket: " + e.getMessage());
+            System.out.println("Vendor: " + vendorId + " encountered an error while adding : " + e.getMessage());
         }
     }
 
     public synchronized void buyTicket(int customerId) {
         try {
-            // Wait if the ticket pool is empty
-            while (ticketPool.isEmpty()) {
-                System.out.println("Customer " + customerId + " is waiting, ticket pool is empty...");
-                wait(); // Wait until a ticket is available
-            }
-
             Ticket ticket = ticketPool.remove(0);
             ticket.setSold(true);
             ticket.setCustomerId(customerId);
@@ -122,9 +112,9 @@ public class TicketPoolService {
             soldTickets.add(ticket);
             System.out.println("Customer " + customerId + " purchased ticket: " + ticket);
 
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             Thread.currentThread().interrupt();
-            System.out.println("Customer " + customerId + " was interrupted while waiting to buy a ticket.");
+            System.out.println("Customer " + customerId + " encountered an error while adding : " + e.getMessage());
         }
     }
 }

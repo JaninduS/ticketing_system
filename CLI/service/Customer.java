@@ -27,6 +27,7 @@ public class Customer implements Runnable {
                     if (Thread.interrupted()) return;
                     // Wait if the ticket pool is empty
                     while (ticketPoolService.getTicketPool().isEmpty()) {
+                        if (!ticketPoolService.isRunning()) return;
                         System.out.println("Customer " + customerId + " is waiting, ticket pool is empty...");
                         ticketPoolService.getTicketPool().wait();  // Wait until a ticket is available
                     }
@@ -41,6 +42,7 @@ public class Customer implements Runnable {
             }
             if (!ticketPoolService.canProcessMoreTickets()) {
                 TicketingCLI.requestStopProcessing(); // Call the stop method
+                System.out.println("Application process completed. type 'EXIT' to view ticket sales details. Good Bye!!");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
